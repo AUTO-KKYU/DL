@@ -37,3 +37,6 @@
 ### "가지고 있는 데이터에 독립변수와 종속변수가 있고 종속변수가 숫자일 때 회귀 이용 "
 
 ![Screenshot from 2024-03-03 18-18-43](https://github.com/AUTO-KKYU/DL/assets/118419026/2127706e-f71f-4aef-bfe0-10e898b18d7d)
+
+## 딥러닝 학습 과정
+![image](https://github.com/AUTO-KKYU/DL/assets/118419026/e32ea2ba-42df-442c-881c-e9493e25da69)
