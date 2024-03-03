@@ -1,31 +1,79 @@
-## 간단한 딥러닝 모델(회귀) 만들기
+## 딥러닝을 활용한 회귀 분석 - 보스턴 주택 가격 예측
 
-import tensorflow as tf
 import pandas as pd
 import numpy as np
+import random
+import tensorflow as tf
 
-x = [-3, 31, -11, 4, 0, 22, -2, -5, -25, -14]
-y = [-2, 32, -10, 5, 1, 23, -1, -4, -24, -13]
+# 랜덤 시드 고정
+SEED = 2021
+random.seed(SEED)
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
 
-X_train = np.array(x).reshape(-1, 1)
-y_train = np.array(y)
+# 데이터 전처리
+from sklearn import datasets
+
+housing = datasets.load_boston()
+X_data = housing.data
+y_data = housing.target
+
+# 피처 스케일링
+from sklearn.preprocessing import MinMaxScaler
+
+scaler = MinMaxScaler()
+X_data_scaled = scaler.fit_transform(X_data)
+
+X_data_scaled[0]
+
+# 학습 - 테스트 데이터셋 분할
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.2, shuffle=True, random_state = SEED)
+
+print(X_train.shape, y_train.shape)
+print(X_test.shape, y_test.shape)
+
+# MLP 모델 아키텍처 정의
 
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 
-model = Sequential()
-model.add(Dense(units=1, activation='linear', input_dim=1))
+def build_model(num_input=1):
+    model = Sequential()
+    model.add(Dense(128, activation='relu', input_dim=num_input))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(32, activation='relu'))
+    model.add(Dense(16, activation='relu'))
+    model.add(Dense(1, activation='linear'))
+    
+    model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+    
+    return model
 
-# model.summary()
+model = build_model(num_input=13)
 
-# 모델 컴파일
-model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+# 미니 배치 학습
+model.fit(X_train, y_train, epochs=200, batch_size=32, verbose=2)
 
-# 모델 학습 및 예측
-model.fit(X_train, y_train, epochs=3000, verbose=0)
+# 모델 평가
+model.evaluate(X_test, y_test)
 
-# 모델 가중치 확인
-model.weights
+# 교차 검증
+model = build_model(num_input=13)
+history = model.fit(X_train, y_train, batch_size=32, epochs=200, validation_split=0.25, verbose=2)
 
-# 모델 예측
-model.predict([[11], [12], [13]])
+# 
+import matplotlib.pyplot as plt
+
+def plot_loss_curve(total_epoch=10, start=1):
+    plt.figure(figsize=(15, 5))
+    plt.plot(range(start, total_epoch +1), history.history['loss'][start-1:total_epoch], label='Train')
+    plt.plot(range(start, total_epoch +1), history.history['val_loss'][start-1:total_epoch], label='Validation')
+    plt.xlabel('Epochs')
+    plt.ylabel('mse')
+    plt.legend()
+    plt.show()
+    
+plot_loss_curve(total_epoch=200, start=1)
+
+plot_loss_curve(total_epoch=200, start=20)
